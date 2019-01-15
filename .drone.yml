@@ -1,8 +1,45 @@
 kind: pipeline
-name: default
+name: game-of-life
 
 steps:
-- name: build
-  image: registry.airwallex.com/java8:build
+- name: docker-info
+  image: registry.airwallex.com/drone-docker
+  pull: always
+  volumes:
+  - name: docker-sock
+    path: /var/run/docker.sock
   commands:
-  - ./gradlew clean build --parallel -Dfile.encoding=UTF8 -Pno-embedded-postgres
+  - docker info
+
+- name: notify-build-started
+  image: plugins/slack:1
+  pull: always
+  settings:
+    webhook: https://hooks.slack.com/services/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
+    channel: rails-prod-monitor
+
+- name: build-service
+  image: registry.airwallex.com/java8:build
+  pull: always
+  volumes:
+  - name: gradle-cache
+    path: /gradle-cache
+  - name: root-m2
+    path: /root/.m2
+  commands:
+  - ./gradlew -g /gradle-cache clean bootJar --parallel -x test -Dfile.encoding=UTF8
+
+  
+volumes:
+- name: docker-sock
+  host:
+    path: /var/run/docker.sock
+- name: gradle-cache
+  host:
+    path: /Storage/Gradle-Cache
+- name: root-m2
+  host:
+    path: /Storage/Maven-Cache
+- name: report
+  host:
+    path: /Storage/unit-tests
