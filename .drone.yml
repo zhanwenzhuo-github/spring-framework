@@ -18,6 +18,23 @@ steps:
     webhook: https://hooks.slack.com/services/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
     channel: rails-prod-monitor
 
+- name: test-services
+  image: registry.airwallex.com/java8:build
+  pull: always
+  volumes:
+  - name: gradle-cache
+    path: /gradle-cache
+  - name: root-m2
+    path: /root/.m2
+  - name: report
+    path: /report
+  commands:
+  - export TERM=xterm-256color
+  - ret=0 && ./gradlew -g /gradle-cache clean build --parallel -Dfile.encoding=UTF8 -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=256m" -Pno-embedded-postgres || ret=$?
+  - mkdir -p /report/core_services/${DRONE_REPO_BRANCH//\//-}-${DRONE_BUILD_NUMBER} || true
+  - 'tput setaf 2 ; echo "report will be at: https://testresults.airwallex.com/unit-tests/core_services/${DRONE_REPO_BRANCH//\//-}-${DRONE_BUILD_NUMBER}/" ; tput sgr0 ;'
+  - exit $ret
+
 - name: build-service
   image: registry.airwallex.com/java8:build
   pull: always
