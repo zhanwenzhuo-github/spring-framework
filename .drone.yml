@@ -2,6 +2,7 @@ kind: pipeline
 name: game-of-life
 
 steps:
+
 - name: docker-info
   image: registry.airwallex.com/drone-docker
   pull: always
