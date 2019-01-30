@@ -1,5 +1,5 @@
 kind: pipeline
-name: game-of-life
+name: default
 
 steps:
 - name: docker-info
